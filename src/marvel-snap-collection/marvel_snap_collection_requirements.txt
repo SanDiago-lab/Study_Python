@@ -1,0 +1,145 @@
+# Marvel Snap Collection Manager — 要件定義
+
+## 1. 目的
+Untapped.ggに同期済みのMarvel Snapコレクション情報を取得し、Python製の小型Macアプリで管理・保存・CSV出力する。
+従来のGoogleスプレッドシートへのカード情報の手入力を減らし、コレクション更新を簡略化することが目的。
+
+## 2. 想定環境
+- macOS 14.8.9（23J631）
+- Xcodeは使用しない
+- Python 3.12系
+- TkinterによるGUI
+- VS Codeで開発
+- Untapped.ggはSafariで利用
+
+## 3. 外部データ取得
+### 3.1 UntappedのCollection
+- UntappedのCollection画面で「Own」に切り替える。
+- DOM上のカード情報から以下を取得する。
+  - カード名
+  - コスト
+  - パワー
+- カード名は`img`要素の`alt`属性から取得。
+- コスト・パワーはカード要素内の`span[aria-label]`から取得。
+- 「Own」フィルターにより所持カードだけを対象とする。
+
+### 3.2 Safariブックマークレット
+- UntappedのCollectionページ上で実行するJavaScriptブックマークレットを使用する。
+- ブックマークレットはDOMからカード情報を抽出する。
+- 同一カードの重複をカード名で除去する。
+- カード名順にソートする。
+- `untapped_collection.json`としてDownloadsフォルダへ出力する。
+
+## 4. Pythonアプリの機能
+### 4.1 コレクション情報
+アプリ内で以下を管理する。
+- Collection Level（CL）
+- 最終同期日時
+- 所持カード一覧
+
+### 4.2 JSON保存
+アプリの永続データとして`collection.json`を使用する。
+
+想定構造：
+```json
+{
+    "collection_level": "2450",
+    "last_sync": "2026-08-25 21:30:00",
+    "cards": [
+        {
+            "name": "Iron Patriot",
+            "cost": 2,
+            "power": 3
+        }
+    ],
+    "sync_history": []
+}
+```
+
+### 4.3 Untappedから同期
+- Downloadsフォルダにある`untapped_collection.json`を自動検出する。
+- ファイル選択ダイアログを使わずに同期できる。
+- 「Untappedから同期」ボタンで実行する。
+- 同期時にカード一覧と最終同期日時を更新する。
+- CLはUntapped JSONから取得せず、アプリ側で保持する。
+
+### 4.4 同期前確認
+- 同期前に現在のカード数と新しいカード数を比較する。
+- カード数の差分を確認できるようにする。
+- ユーザーが確認してから同期する。
+- 誤ったJSONによる意図しない上書きを防ぐ。
+
+### 4.5 新規カード検出
+前回と今回のカード名を比較し、今回新しく所持したカードを検出する。
+- 前回カード集合：`old_names`
+- 今回カード集合：`new_names`
+- 新規カード：`new_names - old_names`
+
+### 4.6 同期履歴
+同期ごとに以下を履歴として保存する。
+- 同期日時
+- CL
+- カード総数
+- 前回からの増加枚数
+- 新しく取得したカード名一覧
+
+想定：
+```json
+{
+    "sync_time": "2026-08-25 21:30:00",
+    "collection_level": "2450",
+    "card_count": 1241,
+    "added": 3,
+    "added_cards": [
+        "Iron Patriot",
+        "Wiccan",
+        "Luna Snow"
+    ]
+}
+```
+
+### 4.7 CSV出力
+CSVには以下を出力する。
+- 名前
+- コスト
+- パワー
+
+CSV冒頭にはメタデータを記録する。
+```csv
+# Collection Level: 2450
+# Last Sync: 2026-08-25 21:30:00
+
+名前,コスト,パワー
+```
+
+CSVはUTF-8 BOM付きで出力し、日本語環境で開きやすくする。
+
+ファイル名にはCLを含める。
+例：
+`marvel_snap_collection_CL2450.csv`
+
+## 5. GUI
+現在想定しているUI要素：
+- アプリタイトル
+- Collection Level入力欄
+- 最終同期日時表示
+- 現在のCL・カード数表示
+- 新規取得カード表示領域
+- 「同期状態を保存」ボタン
+- 「Untappedから同期」ボタン
+- 「CSVを書き出す」ボタン
+
+## 6. 非機能要件
+- macOS 14.8.9で動作可能であること。
+- Xcodeを必要としない。
+- Python標準ライブラリ中心で実装する。
+- JSONを人間が確認しやすい形式（UTF-8、indent=4）で保存する。
+- 操作ミスやJSON不正時にはGUI上にエラーを表示する。
+- 既存のカード情報をCL更新だけで消去しない。
+
+## 7. 将来的な拡張候補
+- 同期履歴を閲覧する画面
+- 新規取得カードの一覧表示
+- ダウンロードされたJSONの自動検出・検証の強化
+- SafariとPythonアプリ間の連携強化
+- CSV出力のさらなる自動化

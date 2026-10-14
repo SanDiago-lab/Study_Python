@@ -1,0 +1,215 @@
+# Marvel Snap Collection Manager — 現在の実装段階
+
+## 1. 現在完成しているもの
+
+### Python環境
+- Python 3が利用可能。
+- VS Codeで`main.py`を編集。
+- プロジェクト配置：
+  `~/python-study/src/marvel-snap-collection/`
+- Tkinter GUIが正常に起動することを確認済み。
+- JSON保存・読み込みが正常動作。
+
+### GUI
+現在の基本GUIが完成。
+- Marvel Snap Collection Managerタイトル
+- Collection Level入力欄
+- 最終同期日時表示
+- CL・カード数表示
+- Untappedから同期ボタン
+- CSV書き出しボタン
+- 同期状態を保存ボタン
+- 新規カード表示機能を追加する段階まで進行
+
+## 2. JSON管理
+
+`collection.json`をアプリの永続データとして使用。
+
+現在保存している主な情報：
+- `collection_level`
+- `last_sync`
+- `cards`
+- `sync_history`
+
+CLと同期日時は保存・再読み込みできることを確認済み。
+アプリ再起動後にCLと同期日時を復元できることを確認済み。
+カード情報を保持したままCL・同期日時だけを書き換えられることを確認済み。
+
+## 3. Untappedデータ取得
+
+### Safari Console
+UntappedのDOMから以下を取得するJavaScriptを作成済み。
+- `img.alt` → カード名
+- `span[aria-label]` → コスト
+- `span[aria-label]` → パワー
+
+Ownフィルター使用時に所持済みカードを取得できることを確認済み。
+
+### JSON出力
+DOMから取得したカード情報をJSON化し、
+`untapped_collection.json`
+としてダウンロードできることを確認済み。
+
+カード情報は概ね以下の形式：
+```json
+{
+    "cards": [
+        {
+            "name": "Iron Patriot",
+            "cost": 2,
+            "power": 3
+        }
+    ]
+}
+```
+
+### Safariブックマークレット
+Consoleに貼っていたJSON生成JavaScriptをブックマークレット化済み。
+UntappedでOwnに切り替えた後、Safariのブックマークをクリックするだけで`untapped_collection.json`を生成できることを確認済み。
+
+## 4. PythonアプリへのUntapped同期
+
+DownloadsフォルダをPythonから参照する仕組みを実装済み。
+
+使用するパス：
+```python
+DOWNLOADS_DIR = Path.home() / "Downloads"
+UNTAPPED_JSON_FILE = DOWNLOADS_DIR / "untapped_collection.json"
+```
+
+「Untappedから同期」ボタンで、ファイル選択ダイアログを使わずにJSONを読み込める。
+
+同期時：
+- Untapped JSONからカード一覧を取得
+- `collection.json`のカード一覧を更新
+- 同期日時を更新
+- CLは既存値を維持
+- カード数を画面に表示
+
+実際にUntapped JSON → Pythonアプリ → `collection.json` → CSVの一連の処理が正常動作することを確認済み。
+
+## 5. CSV出力
+
+CSV出力機能を実装済み。
+
+列：
+- 名前
+- コスト
+- パワー
+
+CSV冒頭に以下のメタデータを出力：
+```csv
+# Collection Level: 2450
+# Last Sync: 2026-08-25 21:30:00
+
+名前,コスト,パワー
+```
+
+UTF-8 BOM付きで出力。
+
+ファイル名にCLを含める機能も実装済み。
+例：
+`marvel_snap_collection_CL2450.csv`
+
+CSV出力が正常にできることを確認済み。
+
+## 6. 同期差分・履歴
+
+同期前後のカード数を比較する処理を実装。
+- `old_cards`
+- `new cards`
+- `old_count`
+- `new_count`
+- `difference`
+
+を利用。
+
+カード名の集合を比較して新規取得カードを特定：
+```python
+old_names = {
+    card.get("name")
+    for card in old_cards
+    if card.get("name")
+}
+
+new_names = {
+    card.get("name")
+    for card in cards
+    if card.get("name")
+}
+
+added_cards = sorted(new_names - old_names)
+```
+
+同期履歴には以下を保存する実装を追加済み：
+- `sync_time`
+- `collection_level`
+- `card_count`
+- `added`
+- `added_cards`
+
+同期履歴をJSONへ追加する処理まで実装・案内済み。
+
+## 7. 同期前確認
+
+同期前に現在のカード数と新しいカード数を比較し、ユーザーが確認してから同期する仕組みを実装済み。
+目的：
+- 古いJSONを誤って同期することを防ぐ
+- 取得結果の異常を確認できるようにする
+
+実際に問題なく実装できたことを確認済み。
+
+## 8. 現在取り組んでいる部分
+
+直近で案内した次の機能：
+### 「前回同期で新しく獲得したカード」のGUI表示
+
+想定：
+```text
+新しく獲得したカード:
+
+★ Iron Patriot
+★ Wiccan
+★ Luna Snow
+```
+
+`Text`ウィジェットをGUIに追加し、
+`sync_history`の最新レコードにある`added_cards`を表示する方式を案内済み。
+
+また、アプリ再起動時には`sync_history[-1]`から前回同期時の新規カードを復元する実装を案内済み。
+
+この部分は、ユーザーがまだ「問題なく実装できた」と確認していない。
+したがって、次回はまずこの実装結果を確認するところから再開する。
+
+## 9. 次の候補
+
+新規カード表示が正常動作した後の候補：
+1. 同期履歴閲覧ウィンドウ
+2. 同期履歴の一覧表示
+3. 過去の同期ごとのCL・カード数・増加枚数表示
+4. 新規取得カード一覧の確認
+5. アプリUIの整理
+6. エラーハンドリング強化
+7. 最終的なMac向けアプリとしての配布方法検討
+
+## 10. 現在の重要な設計
+
+データフロー：
+```text
+Untapped
+ ↓
+Ownフィルター
+ ↓
+Safariブックマークレット
+ ↓
+untapped_collection.json
+ ↓
+Pythonアプリ「Untappedから同期」
+ ↓
+collection.json
+ ↓
+CSV「marvel_snap_collection_CLxxxx.csv」
+```
+
+CL・同期日時はPythonアプリ側で管理。
+カード名・コスト・パワーはUntappedから取得。
