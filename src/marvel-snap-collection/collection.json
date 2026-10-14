@@ -1,6 +1,6 @@
 {
-    "collection_level": "8136",
-    "last_sync": "2026-10-04 18:15:11",
+    "collection_level": "8505",
+    "last_sync": "2026-10-14 23:19:57",
     "cards": [
         {
             "name": "Abomination",
@@ -478,9 +478,19 @@
             "power": 2
         },
         {
+            "name": "Elixir",
+            "cost": 2,
+            "power": 3
+        },
+        {
             "name": "Elsa Bloodstone",
             "cost": 3,
             "power": 5
+        },
+        {
+            "name": "Emperor Hulkling",
+            "cost": 6,
+            "power": 12
         },
         {
             "name": "En Sabah Nur",
@@ -746,6 +756,11 @@
             "name": "Human Torch First Steps",
             "cost": 3,
             "power": 2
+        },
+        {
+            "name": "Hydra Bob",
+            "cost": 1,
+            "power": 4
         },
         {
             "name": "Hydra Stomper",
@@ -1298,9 +1313,19 @@
             "power": 2
         },
         {
+            "name": "Peni Parker",
+            "cost": 2,
+            "power": 3
+        },
+        {
             "name": "Phastos",
             "cost": 3,
             "power": 4
+        },
+        {
+            "name": "Phoenix Force",
+            "cost": 4,
+            "power": 5
         },
         {
             "name": "Pixie",
@@ -1848,6 +1873,16 @@
             "power": 3
         },
         {
+            "name": "Vampire Enchantress",
+            "cost": 6,
+            "power": 7
+        },
+        {
+            "name": "Vampire Killmonger",
+            "cost": 2,
+            "power": 2
+        },
+        {
             "name": "Venom",
             "cost": 3,
             "power": 3
@@ -1988,6 +2023,11 @@
             "power": 3
         },
         {
+            "name": "Zombie Blade",
+            "cost": 2,
+            "power": 3
+        },
+        {
             "name": "Zombie Galacti",
             "cost": 7,
             "power": 5
@@ -2011,6 +2051,11 @@
             "name": "Zombie Sentry",
             "cost": 2,
             "power": 1
+        },
+        {
+            "name": "Zombie Venom",
+            "cost": 3,
+            "power": 3
         }
     ],
     "sync_history": [
@@ -2156,6 +2201,23 @@
                 "Spider-Man Noir",
                 "The Inversion",
                 "Victoria Hand"
+            ]
+        },
+        {
+            "sync_time": "2026-10-14 23:19:57",
+            "collection_level": "8505",
+            "card_count": 411,
+            "added": 9,
+            "added_cards": [
+                "Elixir",
+                "Emperor Hulkling",
+                "Hydra Bob",
+                "Peni Parker",
+                "Phoenix Force",
+                "Vampire Enchantress",
+                "Vampire Killmonger",
+                "Zombie Blade",
+                "Zombie Venom"
             ]
         }
     ]
